@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atomic Architect Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f8ff;
+      text-align: center;
+      padding: 20px;
+    }
+    .game-container {
+      margin-top: 20px;
+    }
+    .formula {
+      font-size: 30px;
+      font-weight: bold;
+    }
+    .element {
+      font-size: 20px;
+      margin: 10px;
+    }
+    input[type="number"] {
+      padding: 5px;
+      font-size: 16px;
+      width: 40px;
+      text-align: center;
+    }
+    .btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .btn:hover {
+      background-color: #45a049;
+    }
+    .feedback {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .timer {
+      font-size: 24px;
+      margin-top: 20px;
+      color: red;
+    }
+    .scoreboard {
+      margin-top: 10px;
+      font-size: 20px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Atomic Architect</h1>
+  <div class="scoreboard" id="score">Score: 0</div>
+  <div class="game-container">
+    <div class="formula" id="formula">H<sub>2</sub>O</div>
+    <div>
+      <div class="element">
+        Hydrogen (H): <input type="number" id="hydrogen" min="0">
+      </div>
+      <div class="element">
+        Oxygen (O): <input type="number" id="oxygen" min="0">
+      </div>
+      <button class="btn" onclick="checkAnswer()">Submit</button>
+    </div>
+    <div id="feedback" class="feedback"></div>
+    <div class="timer" id="timer">Time left: 30</div>
+  </div>
+
+  <script>
+    let currentLevel = 1;
+    let score = 0;
+    let correctAnswers;
+    let countdown;
+    let timeLeft = 30;
+    let timerInterval;
+
+    const formulas = [
+      { formula: 'H2O', answers: { H: 2, O: 1 } },
+      { formula: 'CO2', answers: { C: 1, O: 2 } },
+      { formula: 'C6H12O6', answers: { C: 6, H: 12, O: 6 } },
+      { formula: 'H2SO4', answers: { H: 2, S: 1, O: 4 } },
+      { formula: 'NaCl', answers: { Na: 1, Cl: 1 } },
+      { formula: 'Al2(SO4)3', answers: { Al: 2, S: 3, O: 12 } },
+      { formula: 'Ca(OH)2', answers: { Ca: 1, O: 2, H: 2 } },
+      { formula: '(NH4)2SO4', answers: { N: 2, H: 8, S: 1, O: 4 } }
+    ];
+
+    const correctSound = new Audio('https://www.soundjay.com/button/beep-07.wav');
+    const incorrectSound = new Audio('https://www.soundjay.com/button/beep-02.wav');
+
+    function startTimer() {
+      timerInterval = setInterval(function() {
+        timeLeft--;
+        document.getElementById('timer').textContent = `Time left: ${timeLeft}`;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          checkAnswer();
+        }
+      }, 1000);
+    }
+
+    function updateFormula() {
+      const currentFormula = formulas[currentLevel - 1];
+      document.getElementById('formula').innerHTML = currentFormula.formula.replace(/([A-Z][a-z]*)/g, (match) => {
+        return `<span style="color: blue;">${match}</span>`;
+      });
+      correctAnswers = currentFormula.answers;
+    }
+
+    function checkAnswer() {
+      const hydrogenCount = document.getElementById("hydrogen").value;
+      const oxygenCount = document.getElementById("oxygen").value;
+      let correct = true;
+
+      // Checking answers
+      for (let element in correctAnswers) {
+        let userAnswer = parseInt(document.getElementById(element.toLowerCase()).value);
+        if (userAnswer !== correctAnswers[element]) {
+          correct = false;
+        }
+      }
+
+      if (correct) {
+        score += 10;
+        document.getElementById('feedback').textContent = 'Correct! Great job!';
+        document.getElementById('feedback').style.color = 'green';
+        correctSound.play();
+        nextLevel();
+      } else {
+        document.getElementById('feedback').textContent = 'Incorrect. Try again!';
+        document.getElementById('feedback').style.color = 'red';
+        incorrectSound.play();
+      }
+
+      document.getElementById('score').textContent = `Score: ${score}`;
+    }
+
+    function nextLevel() {
+      if (currentLevel < formulas.length) {
+        currentLevel++;
+        timeLeft = 30;
+        clearInterval(timerInterval);
+        startTimer();
+        updateFormula();
+        document.getElementById('feedback').textContent = '';
+        resetInputs();
+      } else {
+        document.getElementById('feedback').textContent = 'Congratulations! You finished the game!';
+        document.getElementById('timer').textContent = 'Game Over';
+      }
+    }
+
+    function resetInputs() {
+      document.getElementById("hydrogen").value = '';
+      document.getElementById("oxygen").value = '';
+    }
+
+    // Start the game
+    startTimer();
+    updateFormula();
+  </script>
+</body>
+</html>
